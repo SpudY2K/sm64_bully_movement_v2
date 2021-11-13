@@ -1,6 +1,7 @@
 #include "BullyPath.hpp"
 #include "Constants.hpp"
 #include "PathSearch.hpp"
+#include "SurfaceUtils.hpp"
 #include "Trig.hpp"
 #include "WallsFloors.hpp"
 #include <fstream>
@@ -39,76 +40,6 @@ void output_result(BullyPath &path, float lower_speed, float upper_speed, float 
 
 		++state_iter; ++speed_iter; ++yaw_iter;
 	}
-}
-
-bool find_surface_in_region(std::vector<Surface> &surfaces, float min_x, float max_x, float min_y, float max_y, float min_z, float max_z) {
-	for (Surface s : surfaces) {
-		bool inside_area = false;
-
-		if (max_y >= s.lower_y && min_y <= s.upper_y && max_x >= s.min_x && min_x <= s.max_x && max_z >= s.min_z && min_z <= s.max_z) {
-			double t_n; double t_d;
-
-			for (int i = 0; i < 3; ++i) {
-				t_n = min_x - s.vertices[i][0];
-				t_d = s.vertices[(i + 1) % 3][0] - s.vertices[i][0];
-
-				if (t_d < 0) {
-					t_n = -t_n;
-					t_d = -t_d;
-				}
-
-				if (t_n >= 0 && t_n <= t_d) {
-					inside_area = true;
-					break;
-				}
-
-				t_n = max_x - s.vertices[i][0];
-				t_d = s.vertices[(i + 1) % 3][0] - s.vertices[i][0];
-
-				if (t_d < 0) {
-					t_n = -t_n;
-					t_d = -t_d;
-				}
-
-				if (t_n >= 0 && t_n <= t_d) {
-					inside_area = true;
-					break;
-				}
-
-				t_n = min_z - s.vertices[i][2];
-				t_d = s.vertices[(i + 1) % 3][2] - s.vertices[i][2];
-
-				if (t_d < 0) {
-					t_n = -t_n;
-					t_d = -t_d;
-				}
-
-				if (t_n >= 0 && t_n <= t_d) {
-					inside_area = true;
-					break;
-				}
-
-				t_n = max_z - s.vertices[i][2];
-				t_d = s.vertices[(i + 1) % 3][2] - s.vertices[i][2];
-
-				if (t_d < 0) {
-					t_n = -t_n;
-					t_d = -t_d;
-				}
-
-				if (t_n >= 0 && t_n <= t_d) {
-					inside_area = true;
-					break;
-				}
-			}
-		}
-
-		if (inside_area) {
-			return true;
-		}
-	}
-
-	return false;
 }
 
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
