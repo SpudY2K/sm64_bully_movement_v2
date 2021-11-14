@@ -138,6 +138,10 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 					if (find_surface_in_region(walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
 						return false;
 					}
+					
+					if (find_surface_in_region(object_walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
+						return false;
+					}
 				}
 
 				if (find_surface_in_region(floors, min_x, max_x, min_y - 37, max_y + 78, min_z, max_z)) {
