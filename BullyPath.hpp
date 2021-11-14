@@ -43,5 +43,6 @@ public:
 
 	bool advance_frame();
 	float calculate_current_dist();
+	void add_frame(int yaw, float speed, Vec3f &intended_position, Vec3f &next_position, int state);
 };
 #endif
