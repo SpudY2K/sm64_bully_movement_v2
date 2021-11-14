@@ -44,15 +44,17 @@ bool BullyPath::advance_frame() {
 		}
 
 		if (intended_position[0] > -8192 && intended_position[0] < 8192 && intended_position[2] > -8192 && intended_position[2] < 8192) {
+			Vec3f next_position = intended_position;
+
 			Surface wall;
-			int wall_idx = find_wall(intended_position, wall, true);
+			int wall_idx = find_wall(next_position, wall, true);
 
 			if (wall_idx == -1) {
-				wall_idx = find_wall(intended_position, wall, false);
+				wall_idx = find_wall(next_position, wall, false);
 			}
 			else {
 				Surface object_wall;
-				find_wall(intended_position, object_wall, false);
+				find_wall(next_position, object_wall, false);
 			}
 
 			if (wall_idx != -1) {
@@ -68,9 +70,9 @@ bool BullyPath::advance_frame() {
 				int next_yaw = atan2s(yaw_z, yaw_x);
 				int next_hau = (uint16_t)next_yaw >> 4;
 
-				add_frame(next_yaw, current_speed, intended_position, intended_position, (wall_idx << 4) | STATE_WALL);
+				add_frame(next_yaw, current_speed, intended_position, next_position, (wall_idx << 4) | STATE_WALL);
 
-				current_position = &intended_position;
+				current_position = &next_position;
 				current_yaw = next_yaw;
 				current_hau = next_hau;
 			}
