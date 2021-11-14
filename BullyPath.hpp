@@ -19,7 +19,7 @@ public:
 	std::vector<Vec3f> intended_positions;
 	std::vector<int> frame_yaws;
 	std::vector<float> frame_speeds;
-	std::vector<int> frame_states = { STATE_CLEAR };
+	std::vector<int> frame_states;
 
 	Vec3f start_pos;
 	float start_speed;
@@ -30,15 +30,22 @@ public:
 
 	BullyPath() {}
 
-	BullyPath(Vec3f pos, int yaw, float speed) {
+	BullyPath(Vec3f pos, int yaw, float speed, int max_frames) {
 		start_pos = pos;
 		start_yaw = yaw;
 		start_speed = speed;
+
+		frame_positions.reserve(2 * max_frames);
+		intended_positions.reserve(2 * max_frames);
+		frame_yaws.reserve(2 * max_frames);
+		frame_speeds.reserve(2 * max_frames);
+		frame_states.reserve(2 * max_frames);
 
 		frame_positions.push_back(pos);
 		intended_positions.push_back(pos);
 		frame_yaws.push_back(yaw);
 		frame_speeds.push_back(speed);
+		frame_states.push_back(STATE_CLEAR);
 	}
 
 	bool advance_frame();

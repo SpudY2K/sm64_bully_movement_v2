@@ -10,98 +10,79 @@
 
 void output_result(BullyPath &path, float lower_speed, float upper_speed, float min_offset, float max_offset) {
 	int frame = 0;
-
-	std::vector<int>::iterator state_iter = (++path.frame_states.begin());
-	std::vector<float>::iterator speed_iter = (++path.frame_speeds.begin());
-	std::vector<int>::iterator yaw_iter = (++path.frame_yaws.begin());
-
-	for (std::vector<Vec3f>::iterator iter = (++path.frame_positions.begin()); iter != path.frame_positions.end(); ++iter) {
-
-		if (((*state_iter)&0xF) != STATE_WALL) {
+	
+	for (int i = 1; i < path.frame_positions.size(); i++) {
+		if ((path.frame_states[i] & 0xF) != STATE_WALL) {
 			++frame;
-			float dist = euclidean_distance(*iter, path.start_pos);
+			float dist = euclidean_distance(path.frame_positions[i], path.start_pos);
 
-			if (dist >= min_offset && dist <= max_offset && (*state_iter) != STATE_LAVA_DEATH && (*speed_iter) > 0) {
+			if (dist >= min_offset && dist <= max_offset && path.frame_states[i] != STATE_LAVA_DEATH && path.frame_speeds[i] > 0) {
 				#pragma omp critical 
 				{
-					out_stream << frame << ", " 
-						<< path.start_yaw << ", " 
-						<< (*yaw_iter) << ", "
-						<< std::fixed << lower_speed << ", " 
-						<< std::fixed << upper_speed << ", " 
-						<< std::fixed << path.start_speed << ", " 
-						<< std::fixed << (*iter)[0] << ", "
-						<< std::fixed << (*iter)[1] << ", "
-						<< std::fixed << (*iter)[2] << ", "
+					out_stream << frame << ", "
+						<< path.start_yaw << ", "
+						<< path.frame_yaws[i] << ", "
+						<< std::fixed << lower_speed << ", "
+						<< std::fixed << upper_speed << ", "
+						<< std::fixed << path.start_speed << ", "
+						<< std::fixed << path.frame_positions[i][0] << ", "
+						<< std::fixed << path.frame_positions[i][1] << ", "
+						<< std::fixed << path.frame_positions[i][2] << ", "
 						<< std::fixed << dist << "\n";
 				}
 			}
 		}
-
-		++state_iter; ++speed_iter; ++yaw_iter;
 	}
 }
 
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
-	std::vector<int>::iterator a_yaw_iter = ++(a.frame_yaws.begin());
-	std::vector<Vec3f>::iterator a_pos_iter = ++(a.frame_positions.begin());
-	std::vector<Vec3f>::iterator a_int_pos_iter = ++(a.intended_positions.begin());
-	std::vector<int>::iterator a_state_iter = ++(a.frame_states.begin());
-
-	std::vector<int>::iterator b_yaw_iter = ++(b.frame_yaws.begin());
-	std::vector<Vec3f>::iterator b_pos_iter = ++(b.frame_positions.begin());
-	std::vector<Vec3f>::iterator b_int_pos_iter = ++(b.intended_positions.begin());
-	std::vector<int>::iterator b_state_iter = ++(b.frame_states.begin());
-
 	int frame_count = 0;
 
-	while (!(a_yaw_iter == a.frame_yaws.end() && b_yaw_iter == b.frame_yaws.end())) {
-		if (a_yaw_iter == a.frame_yaws.end()) {
-			--a_yaw_iter; --a_pos_iter; --a_int_pos_iter; --a_state_iter;
-			if (!trace_path(a, a.frame_yaws.size(), b.frame_yaws.size()-1, NAN)) {
+	int max_i = fmax(a.frame_yaws.size(), b.frame_yaws.size());
+
+	for (int i = 1; i < max_i; i++) {
+		if (i == a.frame_yaws.size()) {
+			if (!a.advance_frame()) {
 				return false;
 			}
-			++a_yaw_iter; ++a_pos_iter; ++a_int_pos_iter; ++a_state_iter;
 		}
 
-		if (b_yaw_iter == b.frame_yaws.end()) {
-			--b_yaw_iter; --b_yaw_iter; --b_pos_iter; --b_int_pos_iter; --b_state_iter;
-			if (!trace_path(b, b.frame_yaws.size(), a.frame_yaws.size()-1, NAN)) {
+		if (i == b.frame_yaws.size()) {
+			if (!b.advance_frame()) {
 				return false;
 			}
-			++b_yaw_iter; ++b_yaw_iter; ++b_pos_iter; ++b_int_pos_iter; ++b_state_iter;
 		}
 
-		if (*a_yaw_iter != *b_yaw_iter || *a_state_iter != *b_state_iter) {
+		if (a.frame_yaws[i] != b.frame_yaws[i] || a.frame_states[i] != b.frame_states[i]) {
 			return false;
 		}
 
-		float a_dist = euclidean_distance(*a_pos_iter, a.start_pos);
-		float b_dist = euclidean_distance(*b_pos_iter, b.start_pos);
+		float a_dist = euclidean_distance(a.frame_positions[i], a.start_pos);
+		float b_dist = euclidean_distance(b.frame_positions[i], b.start_pos);
 
 		if ((a_dist <= max_offset) ^ (b_dist <= max_offset)) {
 			return false;
 		}
 
-		if (*a_state_iter == STATE_OOB) {
+		if (a.frame_states[i] == STATE_OOB) {
 			float min_x; float max_x; float min_z; float max_z;
 
-			if ((*a_int_pos_iter)[0] < (*b_int_pos_iter)[0]) {
-				min_x = (*a_int_pos_iter)[0];
-				max_x = (*b_int_pos_iter)[0];
+			if (a.intended_positions[i][0] < b.intended_positions[i][0]) {
+				min_x = a.intended_positions[i][0];
+				max_x = b.intended_positions[i][0];
 			}
 			else {
-				min_x = (*b_int_pos_iter)[0];
-				max_x = (*a_int_pos_iter)[0];
+				min_x = b.intended_positions[i][0];
+				max_x = a.intended_positions[i][0];
 			}
 
-			if ((*a_int_pos_iter)[2] < (*b_int_pos_iter)[2]) {
-				min_z = (*a_int_pos_iter)[2];
-				max_z = (*b_int_pos_iter)[2];
+			if (a.intended_positions[i][2] < b.intended_positions[i][2]) {
+				min_z = a.intended_positions[i][2];
+				max_z = b.intended_positions[i][2];
 			}
 			else {
-				min_z = (*b_int_pos_iter)[2];
-				max_z = (*a_int_pos_iter)[2];
+				min_z = b.intended_positions[i][2];
+				max_z = a.intended_positions[i][2];
 			}
 
 			float min_pu_x = floorf((min_x - 8192.0f) / 65536.0f) + 1;
@@ -114,43 +95,43 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 			}
 		}
 		else {
-			float a_pu_x = ceilf(((*a_int_pos_iter)[0] + 8192.0f) / 65536.0f) - 1;
-			float a_pu_z = ceilf(((*a_int_pos_iter)[2] + 8192.0f) / 65536.0f) - 1;
-			float b_pu_x = ceilf(((*b_int_pos_iter)[0] + 8192.0f) / 65536.0f) - 1;
-			float b_pu_z = ceilf(((*b_int_pos_iter)[2] + 8192.0f) / 65536.0f) - 1;
+			float a_pu_x = ceilf((a.intended_positions[i][0] + 8192.0f) / 65536.0f) - 1;
+			float a_pu_z = ceilf((a.intended_positions[i][2] + 8192.0f) / 65536.0f) - 1;
+			float b_pu_x = ceilf((b.intended_positions[i][0] + 8192.0f) / 65536.0f) - 1;
+			float b_pu_z = ceilf((b.intended_positions[i][2] + 8192.0f) / 65536.0f) - 1;
 
 			if (a_pu_x != b_pu_x || a_pu_z != b_pu_z) {
 				return false;
 			}
 
-			if (*a_state_iter == STATE_CLEAR) {
+			if (a.frame_states[i] == STATE_CLEAR) {
 				float min_x; float max_x; float min_y; float max_y; float min_z; float max_z;
 
-				if ((*a_int_pos_iter)[0] < (*b_int_pos_iter)[0]) {
-					min_x = fmodf((*a_int_pos_iter)[0] + 32768.0f, 65536.0f) - 32768.0f;
-					max_x = fmodf((*b_int_pos_iter)[0] + 32768.0f, 65536.0f) - 32768.0f;
+				if (a.intended_positions[i][0] < b.intended_positions[i][0]) {
+					min_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					max_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
 				}
 				else {
-					min_x = fmodf((*b_int_pos_iter)[0] + 32768.0f, 65536.0f) - 32768.0f;
-					max_x = fmodf((*a_int_pos_iter)[0] + 32768.0f, 65536.0f) - 32768.0f;
+					min_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					max_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
 				}
 
-				if ((*a_int_pos_iter)[1] < (*b_int_pos_iter)[1]) {
-					min_y = (*a_int_pos_iter)[1];
-					max_y = (*b_int_pos_iter)[1];
+				if (a.intended_positions[i][1] < b.intended_positions[i][1]) {
+					min_y = a.intended_positions[i][1];
+					max_y = b.intended_positions[i][1];
 				}
 				else {
-					min_y = (*b_int_pos_iter)[1];
-					max_y = (*a_int_pos_iter)[1];
+					min_y = b.intended_positions[i][1];
+					max_y = a.intended_positions[i][1];
 				}
 
-				if ((*a_int_pos_iter)[2] < (*b_int_pos_iter)[2]) {
-					min_z = fmodf((*a_int_pos_iter)[2] + 32768.0f, 65536.0f) - 32768.0f;
-					max_z = fmodf((*b_int_pos_iter)[2] + 32768.0f, 65536.0f) - 32768.0f;
+				if (a.intended_positions[i][2] < b.intended_positions[i][2]) {
+					min_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					max_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
 				}
 				else {
-					min_z = fmodf((*b_int_pos_iter)[2] + 32768.0f, 65536.0f) - 32768.0f;
-					max_z = fmodf((*a_int_pos_iter)[2] + 32768.0f, 65536.0f) - 32768.0f;
+					min_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					max_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
 				}
 
 				if (a_pu_x == 0 && a_pu_z == 0) {
@@ -169,11 +150,9 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 			}
 		}
 
-		if (((*a_state_iter)&0xF) != STATE_WALL) {
+		if ((a.frame_states[i] & 0xF) != STATE_WALL) {
 			++frame_count;
 		}
-
-		++a_yaw_iter; ++a_pos_iter; ++a_int_pos_iter; ++a_state_iter; ++b_yaw_iter; ++b_pos_iter; ++b_int_pos_iter; ++b_state_iter;
 	}
 
 	//if (frame_count != max_frames) {
@@ -213,7 +192,7 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 		float mid_speed = (float)(((double)min_speed + (double)max_speed) / 2.0);
 
 		if (mid_speed != min_speed && mid_speed != max_speed) {
-			BullyPath mid_path(start_position, angle, mid_speed);
+			BullyPath mid_path(start_position, angle, mid_speed, max_frames);
 			trace_path(mid_path, 1, max_frames, max_offset);
 
 			float upper_lower_speed_max = NAN;
@@ -266,10 +245,10 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 }
 
 void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float min_offset, float max_offset, float min_speed, float max_speed) {
-	BullyPath min_path(start_position, angle, min_speed);
+	BullyPath min_path(start_position, angle, min_speed, max_frames);
 	trace_path(min_path, 1, max_frames, max_offset);
 
-	BullyPath max_path(start_position, angle, max_speed);
+	BullyPath max_path(start_position, angle, max_speed, max_frames);
 	trace_path(max_path, 1, max_frames, max_offset);
 
 	float lower_speed_max = NAN;
