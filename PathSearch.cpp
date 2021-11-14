@@ -58,7 +58,7 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 	while (!(a_yaw_iter == a.frame_yaws.end() && b_yaw_iter == b.frame_yaws.end())) {
 		if (a_yaw_iter == a.frame_yaws.end()) {
 			--a_yaw_iter; --a_pos_iter; --a_int_pos_iter; --a_state_iter;
-			if (!trace_path(a, a.frame_yaws.size(), b.frame_yaws.size()-1, INFINITY)) {
+			if (!trace_path(a, a.frame_yaws.size(), b.frame_yaws.size()-1, NAN)) {
 				return false;
 			}
 			++a_yaw_iter; ++a_pos_iter; ++a_int_pos_iter; ++a_state_iter;
@@ -66,7 +66,7 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 
 		if (b_yaw_iter == b.frame_yaws.end()) {
 			--b_yaw_iter; --b_yaw_iter; --b_pos_iter; --b_int_pos_iter; --b_state_iter;
-			if (!trace_path(b, b.frame_yaws.size(), a.frame_yaws.size()-1, INFINITY)) {
+			if (!trace_path(b, b.frame_yaws.size(), a.frame_yaws.size()-1, NAN)) {
 				return false;
 			}
 			++b_yaw_iter; ++b_yaw_iter; ++b_pos_iter; ++b_int_pos_iter; ++b_state_iter;
@@ -224,7 +224,9 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 
 			if (upper_upper_speed_min != mid_speed) {
 				if (lower_speed_max != mid_speed) {
-					output_result(mid_path, upper_speed_min, upper_lower_speed_max, min_offset, max_offset);
+					if (!isnan(upper_speed_min)) {
+						output_result(mid_path, upper_speed_min, upper_lower_speed_max, min_offset, max_offset);
+					}
 				}
 
 				upper_speed_min = upper_upper_speed_min;
