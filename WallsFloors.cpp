@@ -1,7 +1,20 @@
 #include "Constants.hpp"
 #include "WallsFloors.hpp"
 
-std::vector<Surface> walls = {
+const int total_walls = 711;
+const int total_floors = 350;
+const int total_pyramid_floors = 2;
+const int total_track_floors = 2;
+const int total_track_walls = 8;
+const int total_object_walls = total_track_walls;
+const int total_object_floors = total_track_floors + total_pyramid_floors;
+
+int n_walls = total_walls;
+int n_floors = total_floors;
+int n_object_walls = 0;
+int n_object_floors = 0;
+
+Surface walls[total_walls] = {
 	Surface({{-4167, 3482, 404}, {-4167, 3523, 404}, {-4167, 3523, -209}}),
 	Surface({{-4167, 3482, 404}, {-4167, 3523, -209}, {-4167, 3482, -209}}),
 	Surface({{-4146, 3482, -209}, {-4146, 3533, 404}, {-4146, 3482, 404}}),
@@ -715,7 +728,7 @@ std::vector<Surface> walls = {
 	Surface({{4045, -1279, 154}, {3738, -1279, 154}, {3738, -1330, 154}})
 };
 
-std::vector<Surface> floors = {
+Surface floors[total_floors] = {
 	Surface({{1536, 5478, -262}, {922, 5478, -262}, {922, 5478, 403}}),
 	Surface({{1536, 5478, -262}, {922, 5478, 403}, {1536, 5478, 403}}),
 	Surface({{2150, 5248, -262}, {1536, 5248, -210}, {2150, 5248, -210}}),
@@ -1068,21 +1081,18 @@ std::vector<Surface> floors = {
 	Surface({{-8191, -3071, 8192}, {8192, -3071, 8192}, {8192, -3071, -8191}})
 };
 
-std::vector<Surface> object_walls = {};
-
-std::vector<Surface> object_floors = {};
-
-std::vector<Surface> pyramid_platform_floors = {
+Surface pyramid_platform_floors[total_pyramid_floors] = {
 	Surface({{307, 307, -306}, {-306, 307, -306}, {-306, 307, 307}}),
 	Surface({{307, 307, -306}, {-306, 307, 307}, {307, 307, 307}})
 };
 
-std::vector<Surface> track_platform_floors = {
+
+Surface track_platform_floors[total_track_floors] = {
 	Surface({{307, 205, -306}, {-306, 205, -306}, {-306, 205, 307}}),
 	Surface({ {307, 205, -306}, {-306, 205, 307}, {307, 205, 307}})
 };
 
-std::vector<Surface> track_platform_walls = {
+Surface track_platform_walls[total_track_walls] = {
 	Surface({{307, 0, -306}, {-306, 205, -306}, {307, 205, -306}}),
 	Surface({{307, 0, -306}, {-306, 0, -306}, {-306, 205, -306}}),
 	Surface({{307, 0, -306}, {307, 205, 307}, {307, 0, 307}}),
@@ -1093,28 +1103,36 @@ std::vector<Surface> track_platform_walls = {
 	Surface({{307, 205, 307}, {-306, 205, 307}, {-306, 0, 307}})
 };
 
+Surface object_walls[total_object_walls];
+
+Surface object_floors[total_object_floors];
+
 void filter_walls_and_floors(float y_pos) {
-	for (std::vector<Surface>::const_iterator iter = walls.begin(); iter != walls.end(); ) {
-		if ((*iter).lower_y > y_pos + (bully_hitbox_height / 2) + 100) {
-			iter = walls.erase(iter);
+	for (int i = 0; i < total_walls; ++i) {
+		if (walls[i].lower_y > y_pos + (bully_hitbox_height / 2) + 100) {
+			n_walls--;
 		}
 		else {
-			++iter;
+			if (total_walls != n_walls) {
+				walls[i - total_walls + n_walls] = walls[i];
+			}
 		}
 	}
 
-	for (std::vector<Surface>::const_iterator iter = floors.begin(); iter != floors.end(); ) {
-		if ((*iter).lower_y > y_pos + 178) {
-			iter = floors.erase(iter);
+	for (int i = 0; i < total_floors; ++i) {
+		if (floors[i].lower_y > y_pos + 178) {
+			n_floors--;
 		}
 		else {
-			++iter;
+			if (total_floors != n_floors) {
+				floors[i - total_floors + n_floors] = floors[i];
+			}
 		}
 	}
 }
 
 void add_track_platform(Vec3f &track_platform_position) {
-	for (int i = 0; i < track_platform_floors.size(); ++i) {
+	for (int i = 0; i < total_track_floors; ++i) {
 		std::vector<std::vector<float>> pos_vertices = { {track_platform_floors[i].vertices[0][0] + track_platform_position[0], track_platform_floors[i].vertices[0][1] + track_platform_position[1], track_platform_floors[i].vertices[0][2] + track_platform_position[2]},
 											{track_platform_floors[i].vertices[1][0] + track_platform_position[0], track_platform_floors[i].vertices[1][1] + track_platform_position[1], track_platform_floors[i].vertices[1][2] + track_platform_position[2]},
 											{track_platform_floors[i].vertices[2][0] + track_platform_position[0], track_platform_floors[i].vertices[2][1] + track_platform_position[1], track_platform_floors[i].vertices[2][2] + track_platform_position[2]} };
@@ -1125,10 +1143,11 @@ void add_track_platform(Vec3f &track_platform_position) {
 			}
 		}
 
-		object_floors.push_back(Surface(pos_vertices));
+		object_floors[n_object_floors] = Surface(pos_vertices);
+		n_object_floors++;
 	}
 
-	for (int i = 0; i < track_platform_walls.size(); ++i) {
+	for (int i = 0; i < total_track_walls; ++i) {
 		std::vector<std::vector<float>> pos_vertices = { {track_platform_walls[i].vertices[0][0] + track_platform_position[0], track_platform_walls[i].vertices[0][1] + track_platform_position[1], track_platform_walls[i].vertices[0][2] + track_platform_position[2]},
 											{ track_platform_walls[i].vertices[1][0] + track_platform_position[0], track_platform_walls[i].vertices[1][1] + track_platform_position[1], track_platform_walls[i].vertices[1][2] + track_platform_position[2] },
 											{ track_platform_walls[i].vertices[2][0] + track_platform_position[0], track_platform_walls[i].vertices[2][1] + track_platform_position[1], track_platform_walls[i].vertices[2][2] + track_platform_position[2] } };
@@ -1139,7 +1158,8 @@ void add_track_platform(Vec3f &track_platform_position) {
 			}
 		}
 
-		object_walls.push_back(Surface(pos_vertices));
+		object_walls[n_object_walls] = Surface(pos_vertices);
+		n_object_walls++;
 	}
 }
 
@@ -1147,9 +1167,10 @@ void add_pyramid_platform(Vec3f &pyramid_platform_position, Vec3f &pyramid_platf
 	Mat4 mat;
 	create_transform_from_normal(pyramid_platform_normal, pyramid_platform_position, mat);
 
-	for (int i = 0; i < pyramid_platform_floors.size(); ++i) {
+	for (int i = 0; i < total_pyramid_floors; ++i) {
 		VecVec3f tform_vertices;
 		apply_tform(pyramid_platform_floors[i].vertices, mat, tform_vertices);
-		object_floors.push_back(Surface(tform_vertices));
+		object_floors[n_object_floors] = Surface(tform_vertices);
+		n_object_floors++;
 	}
 }

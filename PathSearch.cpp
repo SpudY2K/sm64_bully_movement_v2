@@ -10,7 +10,7 @@
 
 void output_result(BullyPath &path, float lower_speed, float upper_speed, float min_offset, float max_offset) {
 	int frame = 0;
-	
+
 	for (int i = 1; i < path.frame_positions.size(); i++) {
 		if ((path.frame_states[i] & 0xF) != STATE_WALL) {
 			++frame;
@@ -135,20 +135,20 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 				}
 
 				if (a_pu_x == 0 && a_pu_z == 0) {
-					if (find_surface_in_region(walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
+					if (find_surface_in_region(walls, n_walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
 						return false;
 					}
-					
-					if (find_surface_in_region(object_walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
+
+					if (find_surface_in_region(object_walls, n_object_walls, min_x, max_x, min_y, max_y, min_z, max_z)) {
 						return false;
 					}
 				}
 
-				if (find_surface_in_region(floors, min_x, max_x, min_y - 37, max_y + 78, min_z, max_z)) {
+				if (find_surface_in_region(floors, n_floors, min_x, max_x, min_y - 37, max_y + 78, min_z, max_z)) {
 					return false;
 				}
 
-				if (find_surface_in_region(object_floors, min_x, max_x, min_y - 37, max_y + 78, min_z, max_z)) {
+				if (find_surface_in_region(object_floors, n_object_floors, min_x, max_x, min_y - 37, max_y + 78, min_z, max_z)) {
 					return false;
 				}
 			}
@@ -171,11 +171,11 @@ bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_of
 		if (path.advance_frame()) {
 			float current_dist = path.calculate_current_dist();
 
-			if (current_dist <= max_offset && path.frame_states.back() != STATE_LAVA_DEATH) {
+			if (current_dist <= max_offset && path.frame_states.back() != STATE_LAVA_DEATH && path.frame_speeds.back() > 0) {
 				path.good_frames.push_back(n_frames);
 			}
 
-			if (current_dist - path.frame_speeds.back()*(max_frames - n_frames) > max_offset + 200) {
+			if (current_dist - path.frame_speeds.back()*(max_frames - n_frames) > max_offset + 200 || path.frame_speeds.back() == 0) {
 				break;
 			}
 		}

@@ -46,23 +46,23 @@ bool BullyPath::advance_frame() {
 		if (intended_position[0] > -8192 && intended_position[0] < 8192 && intended_position[2] > -8192 && intended_position[2] < 8192) {
 			Vec3f next_position = intended_position;
 
-			Surface wall;
-			int wall_idx = find_wall(next_position, wall, true);
+			Surface *wall;
+			int wall_idx = find_wall(next_position, &wall, true);
 
 			if (wall_idx == -1) {
-				wall_idx = find_wall(next_position, wall, false);
+				wall_idx = find_wall(next_position, &wall, false);
 			}
 			else {
-				Surface object_wall;
-				find_wall(next_position, object_wall, false);
+				Surface *object_wall;
+				find_wall(next_position, &object_wall, false);
 			}
 
 			if (wall_idx != -1) {
 				int current_hau = (uint16_t)current_yaw >> 4;
 
-				float wall_normal_norm1 = wall.normal[0] * wall.normal[0] + wall.normal[2] * wall.normal[2];
-				float nx_nz_sq_diff = wall.normal[0] * wall.normal[0] - wall.normal[2] * wall.normal[2];
-				float nx_nz = wall.normal[0] * wall.normal[2];
+				float wall_normal_norm1 = wall->normal[0] * wall->normal[0] + wall->normal[2] * wall->normal[2];
+				float nx_nz_sq_diff = wall->normal[0] * wall->normal[0] - wall->normal[2] * wall->normal[2];
+				float nx_nz = wall->normal[0] * wall->normal[2];
 
 				float yaw_x = -nx_nz_sq_diff * x_speed / wall_normal_norm1 - 2 * z_speed * nx_nz / wall_normal_norm1;
 				float yaw_z = nx_nz_sq_diff * z_speed / wall_normal_norm1 - 2 * x_speed * nx_nz / wall_normal_norm1;
@@ -82,13 +82,13 @@ bool BullyPath::advance_frame() {
 		short z_mod = (short)(int)intended_position[2];
 
 		if (abs(x_mod) < 8192 && abs(z_mod) < 8192) {
-			Surface floor;
+			Surface *floor;
 			float floorY = lava_y;
-			int floor_idx = find_floor(intended_position, floor, floorY, false);
+			int floor_idx = find_floor(intended_position, &floor, floorY, false);
 
-			Surface object_floor;
+			Surface *object_floor;
 			float object_floorY = lava_y;
-			int object_floor_idx = find_floor(intended_position, object_floor, object_floorY, true);
+			int object_floor_idx = find_floor(intended_position, &object_floor, object_floorY, true);
 
 			if (floor_idx == -1) {
 				if (object_floor_idx != -1) {
@@ -108,10 +108,10 @@ bool BullyPath::advance_frame() {
 			if (floor_idx != -1) {
 				int current_hau = (uint16_t)current_yaw >> 4;
 
-				if (floor.normal[1] < 0.5 && floorY > intended_position[1]) {
-					float floor_normal_norm1 = floor.normal[0] * floor.normal[0] + floor.normal[2] * floor.normal[2];
-					float nx_nz_sq_diff = floor.normal[0] * floor.normal[0] - floor.normal[2] * floor.normal[2];
-					float nx_nz = floor.normal[0] * floor.normal[2];
+				if (floor->normal[1] < 0.5 && floorY > intended_position[1]) {
+					float floor_normal_norm1 = floor->normal[0] * floor->normal[0] + floor->normal[2] * floor->normal[2];
+					float nx_nz_sq_diff = floor->normal[0] * floor->normal[0] - floor->normal[2] * floor->normal[2];
+					float nx_nz = floor->normal[0] * floor->normal[2];
 
 					float yaw_x = -nx_nz_sq_diff * x_speed / floor_normal_norm1 - 2 * z_speed * nx_nz / floor_normal_norm1;
 					float yaw_z = nx_nz_sq_diff * z_speed / floor_normal_norm1 - 2 * x_speed * nx_nz / floor_normal_norm1;
@@ -150,19 +150,18 @@ bool BullyPath::advance_frame() {
 					}
 
 					if ((int)next_y >= (int)floorY && (int)next_y < (int)floorY + 37) {
+						float floor_normal_norm1 = floor->normal[0] * floor->normal[0] + floor->normal[2] * floor->normal[2];
+						float floor_normal_norm2 = floor->normal[0] * floor->normal[0] + floor->normal[1] * floor->normal[1] + floor->normal[2] * floor->normal[2];
 
-						float floor_normal_norm1 = floor.normal[0] * floor.normal[0] + floor.normal[2] * floor.normal[2];
-						float floor_normal_norm2 = floor.normal[0] * floor.normal[0] + floor.normal[1] * floor.normal[1] + floor.normal[2] * floor.normal[2];
-
-						x_speed += floor.normal[0] * floor_normal_norm1 / floor_normal_norm2 * bully_gravity * 2;
-						z_speed += floor.normal[2] * floor_normal_norm1 / floor_normal_norm2 * bully_gravity * 2;
+						x_speed += floor->normal[0] * floor_normal_norm1 / floor_normal_norm2 * bully_gravity * 2;
+						z_speed += floor->normal[2] * floor_normal_norm1 / floor_normal_norm2 * bully_gravity * 2;
 
 						int next_yaw = atan2s(z_speed, x_speed);
 						int next_hau = (uint16_t)next_yaw >> 4;
 
 						float next_speed;
 
-						if (floor.normal[1] < 0.2) {
+						if (floor->normal[1] < 0.2) {
 							next_speed = 0.0f;
 						}
 						else {
