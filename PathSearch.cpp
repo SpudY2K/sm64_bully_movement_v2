@@ -271,50 +271,8 @@ void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float mi
 
 void find_paths(Vec3f &start_position, float min_speed, float max_speed, int total_frames, float min_offset, float max_offset) {
 	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i < 1024; ++i) {
+	for (int i = 0; i < 8192; ++i) {
 		std::cout << gArctanTable[i] << "\n";
 		find_angle_paths(start_position, gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-	
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 1024; i > 0; --i) {
-		std::cout << (0x4000 - gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0x4000 - gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i < 1024; ++i) {
-		std::cout << (0x4000 + gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0x4000 + gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 1024; i > 0; --i) {
-		std::cout << (0x8000 - gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0x8000 - gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i < 1024; ++i) {
-		std::cout << (0x8000 + gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0x8000 + gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 1024; i > 0; --i) {
-		std::cout << (0xC000 - gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0xC000 - gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i < 1024; ++i) {
-		std::cout << (0xC000 + gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, 0xC000 + gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
-	}
-
-	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 1024; i > 0; --i) {
-		std::cout << (-gArctanTable[i]) << "\n";
-		find_angle_paths(start_position, -gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
 	}
 }
