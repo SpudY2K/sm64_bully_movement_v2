@@ -11,7 +11,7 @@
 void output_result(BullyPath &path, float lower_speed, float upper_speed, float min_offset, float max_offset) {
 	int frame = 0;
 
-	for (int i = 1; i < path.frame_positions.size(); i++) {
+	for (int i = 1; i < path.n_frames; i++) {
 		if ((path.frame_states[i] & 0xF) != STATE_WALL) {
 			++frame;
 			float dist = euclidean_distance(path.frame_positions[i], path.start_pos);
@@ -38,16 +38,16 @@ void output_result(BullyPath &path, float lower_speed, float upper_speed, float 
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
 	int frame_count = 0;
 
-	int max_i = fmax(a.frame_yaws.size(), b.frame_yaws.size());
+	int max_i = fmax(a.n_frames, b.n_frames);
 
 	for (int i = 1; i < max_i; i++) {
-		if (i == a.frame_yaws.size()) {
+		if (i == a.n_frames) {
 			if (!a.advance_frame()) {
 				return false;
 			}
 		}
 
-		if (i == b.frame_yaws.size()) {
+		if (i == b.n_frames) {
 			if (!b.advance_frame()) {
 				return false;
 			}
@@ -171,11 +171,12 @@ bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_of
 		if (path.advance_frame()) {
 			float current_dist = path.calculate_current_dist();
 
-			if (current_dist <= max_offset && path.frame_states.back() != STATE_LAVA_DEATH && path.frame_speeds.back() > 0) {
-				path.good_frames.push_back(n_frames);
+			if (current_dist <= max_offset && path.frame_states[path.n_frames - 1] != STATE_LAVA_DEATH && path.frame_speeds[path.n_frames - 1] > 0) {
+				path.good_frames[path.n_good_frames] = n_frames;
+				path.n_good_frames++;
 			}
 
-			if (current_dist - path.frame_speeds.back()*(max_frames - n_frames) > max_offset + 200 || path.frame_speeds.back() == 0) {
+			if (current_dist - path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames) > max_offset + 200 || path.frame_speeds[path.n_frames - 1] == 0) {
 				break;
 			}
 		}
@@ -196,7 +197,7 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 		float mid_speed = (float)(((double)min_speed + (double)max_speed) / 2.0);
 
 		if (mid_speed != min_speed && mid_speed != max_speed) {
-			BullyPath mid_path(start_position, angle, mid_speed, max_frames);
+			BullyPath mid_path(start_position, angle, mid_speed);
 			trace_path(mid_path, 1, max_frames, max_offset);
 
 			float upper_lower_speed_max = NAN;
@@ -220,9 +221,20 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 			}
 		}
 		else {
-			if (!min_path.good_frames.empty()) {
-				if (!max_path.good_frames.empty()) {
-					if (min_path.good_frames == max_path.good_frames) {
+			if (min_path.n_good_frames > 0) {
+				if (max_path.n_good_frames > 0) {
+					bool good_frames_match = (min_path.n_good_frames == max_path.n_good_frames);
+
+					if (good_frames_match) {
+						for (int i = 0; i < min_path.n_good_frames; i++) {
+							if (min_path.good_frames[i] != max_path.good_frames[i]) {
+								good_frames_match = false;
+								break;
+							}
+						}
+					}
+
+					if (good_frames_match) {
 						lower_speed_max = max_path.start_speed;
 						upper_speed_min = min_path.start_speed;
 					}
@@ -235,13 +247,13 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 					lower_speed_max = min_path.start_speed;
 				}
 			}
-			else if (!max_path.good_frames.empty()) {
+			else if (max_path.n_good_frames > 0) {
 				upper_speed_min = max_path.start_speed;
 			}
 		}
 	}
 	else {
-		if (!min_path.good_frames.empty()) {
+		if (min_path.n_good_frames > 0) {
 			lower_speed_max = max_path.start_speed;
 			upper_speed_min = min_path.start_speed;
 		}
@@ -249,10 +261,10 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 }
 
 void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float min_offset, float max_offset, float min_speed, float max_speed) {
-	BullyPath min_path(start_position, angle, min_speed, max_frames);
+	BullyPath min_path(start_position, angle, min_speed);
 	trace_path(min_path, 1, max_frames, max_offset);
 
-	BullyPath max_path(start_position, angle, max_speed, max_frames);
+	BullyPath max_path(start_position, angle, max_speed);
 	trace_path(max_path, 1, max_frames, max_offset);
 
 	float lower_speed_max = NAN;

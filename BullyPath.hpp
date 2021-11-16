@@ -13,43 +13,41 @@
 #define STATE_WALL 4
 #define STATE_LAVA_DEATH 5
 
+#define MAX_FRAME_STEPS 100
+
 class BullyPath {
 public:
-	std::vector<Vec3f> frame_positions;
-	std::vector<Vec3f> intended_positions;
-	std::vector<int> frame_yaws;
-	std::vector<float> frame_speeds;
-	std::vector<int> frame_states;
+	Vec3f frame_positions[MAX_FRAME_STEPS];
+	Vec3f intended_positions[MAX_FRAME_STEPS];
+	int frame_yaws[MAX_FRAME_STEPS];
+	float frame_speeds[MAX_FRAME_STEPS];
+	int frame_states[MAX_FRAME_STEPS];
+	int good_frames[MAX_FRAME_STEPS];
+
+	int n_frames = 1;
+	int n_good_frames = 0;
 
 	Vec3f start_pos;
 	float start_speed;
 	int start_yaw;
 
 	float current_y_speed = 0.0f;
-	std::vector<int> good_frames;
 
 	BullyPath() {}
 
-	BullyPath(Vec3f pos, int yaw, float speed, int max_frames) {
+	BullyPath(Vec3f pos, int yaw, float speed) {
 		start_pos = pos;
 		start_yaw = yaw;
 		start_speed = speed;
 
-		frame_positions.reserve(2 * max_frames);
-		intended_positions.reserve(2 * max_frames);
-		frame_yaws.reserve(2 * max_frames);
-		frame_speeds.reserve(2 * max_frames);
-		frame_states.reserve(2 * max_frames);
-
-		frame_positions.push_back(pos);
-		intended_positions.push_back(pos);
-		frame_yaws.push_back(yaw);
-		frame_speeds.push_back(speed);
-		frame_states.push_back(STATE_CLEAR);
+		frame_positions[0] = pos;
+		intended_positions[0] = pos;
+		frame_yaws[0] = yaw;
+		frame_speeds[0] = speed;
+		frame_states[0] = STATE_CLEAR;
 	}
 
 	bool advance_frame();
 	float calculate_current_dist();
-	void add_frame(int yaw, float speed, Vec3f &intended_position, Vec3f &next_position, int state);
 };
 #endif
