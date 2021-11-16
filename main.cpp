@@ -1,6 +1,8 @@
+#include "BullyPath.hpp"
 #include "Constants.hpp"
 #include "PathSearch.hpp"
 #include "WallsFloors.hpp"
+#include <assert.h>
 #include <fstream>
 #include <iostream>
 
@@ -22,6 +24,8 @@ int main()
 	Vec3f track_platform_position = { -1594, -3072, 0 };
 	Vec3f pyramid_platform_position = { -1945, -3225, -715 };
 	Vec3f pyramid_platform_normal = { 0, 1, 0};
+	
+	assert(2 * total_frames <= MAX_FRAME_STEPS);
 
 	filter_walls_and_floors(start_position[1]);
 
