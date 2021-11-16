@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #ifndef VMATH_H
 #define VMATH_H

@@ -208,7 +208,7 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 
 			if (upper_upper_speed_min != mid_speed) {
 				if (lower_speed_max != mid_speed) {
-					if (!isnan(upper_speed_min)) {
+					if (!std::isnan(upper_speed_min)) {
 						output_result(mid_path, upper_speed_min, upper_lower_speed_max, min_offset, max_offset);
 					}
 				}
@@ -272,11 +272,11 @@ void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float mi
 
 	search_paths(start_position, max_frames, min_offset, max_offset, min_path, max_path, lower_speed_max, upper_speed_min);
 
-	if (!isnan(lower_speed_max)) {
+	if (!std::isnan(lower_speed_max)) {
 		output_result(min_path, min_speed, lower_speed_max, min_offset, max_offset);
 	}
 
-	if (!isnan(upper_speed_min) && upper_speed_min != min_speed) {
+	if (!std::isnan(upper_speed_min) && upper_speed_min != min_speed) {
 		output_result(min_path, upper_speed_min, max_speed, min_offset, max_offset);
 	}
 }

@@ -3,6 +3,7 @@
 #include "Surface.hpp"
 #include "SurfaceUtils.hpp"
 #include "Trig.hpp"
+#include <climits>
 #include <cmath>
 
 float BullyPath::calculate_current_dist() {

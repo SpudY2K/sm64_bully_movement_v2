@@ -3,6 +3,7 @@
 #include "BullyPath.hpp"
 #include "Surface.hpp"
 #include "vmath.hpp"
+#include <fstream>
 #include <list>
 
 #ifndef PATH_SEARCH_H
