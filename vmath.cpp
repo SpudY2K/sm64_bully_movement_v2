@@ -3,7 +3,8 @@
 #include <cmath>
 
 float euclidean_distance(Vec3f &a, Vec3f &b) {
-	return sqrtf(powf(a[0] - b[0], 2.0f) + powf(a[2] - b[2], 2.0f));
+  // equal to sqrtf(powf(a[0]-b[0], 2.0f), powf(a[2]-b[2], 2.0f))
+	return hypotf(a[0] - b[0], a[2] - b[2]);
 }
 
 void create_transform_from_normal(Vec3f &normal, Vec3f &position, Mat4 &mat) {
@@ -49,7 +50,7 @@ void vec3f_cross(Vec3f& dest, const Vec3f& a, const Vec3f& b) {
 /// Scale vector 'dest' so it has length 1
 void vec3f_normalize(Vec3f& dest) {
 	//! Possible division by zero
-	float invsqrt = 1.0f / sqrtf(dest[0] * dest[0] + dest[1] * dest[1] + dest[2] * dest[2]);
+	float invsqrt = 1.0f / hypotf(dest[0], hypotf(dest[1], dest[2]));
 
 	dest[0] *= invsqrt;
 	dest[1] *= invsqrt;

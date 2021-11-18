@@ -31,6 +31,11 @@ add_executable(bruteforce
 # Equivalent to specifying a bunch of compiler flags.
 # ===================================================
 
+set_target_properties(bruteforce PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED true
+)
+
 # LTO
 include(CheckIPOSupported)
 check_ipo_supported(RESULT lto_supported OUTPUT lto_error LANGUAGES CXX)

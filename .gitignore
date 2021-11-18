@@ -34,3 +34,4 @@
 # CMake related build files
 build/
 !cmake/msvc_march_native_helper.exe
+BullyPositions.txt
