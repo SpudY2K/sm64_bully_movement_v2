@@ -41,8 +41,9 @@ void Surface::calculate_normal() {
 	normal[0] = (vertices[1][1] - vertices[0][1]) * (vertices[2][2] - vertices[1][2]) - (vertices[1][2] - vertices[0][2]) * (vertices[2][1] - vertices[1][1]);
 	normal[1] = (vertices[1][2] - vertices[0][2]) * (vertices[2][0] - vertices[1][0]) - (vertices[1][0] - vertices[0][0]) * (vertices[2][2] - vertices[1][2]);
 	normal[2] = (vertices[1][0] - vertices[0][0]) * (vertices[2][1] - vertices[1][1]) - (vertices[1][1] - vertices[0][1]) * (vertices[2][0] - vertices[1][0]);
-
-	float mag = sqrtf(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+  
+  // (should be) equivalent to sqrtf(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2])
+	float mag = hypotf(normal[0], hypotf(normal[1], normal[2]));
 
 	mag = (float)(1.0 / mag);
 	normal[0] *= mag;

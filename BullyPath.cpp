@@ -155,7 +155,8 @@ bool BullyPath::advance_frame() {
 							frame_speeds[n_frames] = 0.0f;
 						}
 						else {
-							frame_speeds[n_frames] = sqrtf(x_speed*x_speed + z_speed * z_speed)*bully_friction;
+              // equivalent to sqrtf(x_speed * x_speed + z_speed * z_speed)
+							frame_speeds[n_frames] = hypotf(x_speed, z_speed) * bully_friction;
 						}
 
 						frame_positions[n_frames][0] = frame_positions[n_frames - 1][0] + frame_speeds[n_frames] * gSineTable[next_hau];
