@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 void output_result(BullyPath &path, float lower_speed, float upper_speed, float min_offset, float max_offset) {
 	int frame = 0;
@@ -40,19 +41,36 @@ float fmod_with_int(float a, int b) {
 	long int_a = a;
 	long count = int_a / b;
 	float mod_a = a - (count * b);
-	if (a < 0) {
-		while (mod_a <= -b) {
-			mod_a += b;
-		}
-	} else {
-		while (mod_a >= b) {
-			mod_a -= b;
-		}	
-	}
+	// if (a < 0) {
+	// 	while (mod_a <= -b) {
+	// 		mod_a += b;
+	// 	}
+	// } else {
+	// 	while (mod_a >= b) {
+	// 		mod_a -= b;
+	// 	}	
+	// }
 	// if (mod_a != fmodf(a, b)) {
-	// 	printf("something went wrong\n");
+	// 	printf("something went wrong, got %f, expected %f, a = %f, b = %d\n", mod_a, fmodf(a, b), a, b);
 	// }
 	return mod_a;
+}
+bool verify_fmod_int() {
+	float check = std::numeric_limits<long>::min();
+	float max_float = std::numeric_limits<long>::max();
+	long count = 0;
+	while (check < max_float) {
+		if (count % 100000000 == 0) {
+			printf("count = %ld\n", count);
+		}
+		if (fmod_with_int(check, 65536) != fmodf(check, 65536.0)) {
+			printf("fmod_with_int failed check with a = %f\n", check);
+			return false;
+		}
+		check = std::nextafter(check, max_float);
+		count+=1;
+	}
+	return true;
 }
 
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
