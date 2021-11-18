@@ -40,6 +40,8 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 
 	int max_i = fmax(a.n_frames, b.n_frames);
 
+	float max_offset_squared = max_offset * max_offset;
+
 	for (int i = 1; i < max_i; i++) {
 		if (i == a.n_frames) {
 			if (!a.advance_frame()) {
@@ -57,10 +59,10 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 			return false;
 		}
 
-		float a_dist = euclidean_distance(a.frame_positions[i], a.start_pos);
-		float b_dist = euclidean_distance(b.frame_positions[i], b.start_pos);
+		float a_dist_squared = euclidean_distance_squared(a.frame_positions[i], a.start_pos);
+		float b_dist_squared = euclidean_distance_squared(b.frame_positions[i], b.start_pos);
 
-		if ((a_dist <= max_offset) ^ (b_dist <= max_offset)) {
+		if ((a_dist_squared <= max_offset_squared) ^ (b_dist_squared <= max_offset_squared)) {
 			return false;
 		}
 
@@ -167,16 +169,17 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 }
 
 bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_offset) {
+	float max_offset_squared = max_offset * max_offset;
 	for (int n_frames = current_frame; n_frames <= max_frames; ++n_frames) {
 		if (path.advance_frame()) {
-			float current_dist = path.calculate_current_dist();
+			float current_dist_squared = path.calculate_current_dist_squared();
 
-			if (current_dist <= max_offset && path.frame_states[path.n_frames - 1] != STATE_LAVA_DEATH && path.frame_speeds[path.n_frames - 1] > 0) {
+			if (current_dist_squared <= max_offset_squared && path.frame_states[path.n_frames - 1] != STATE_LAVA_DEATH && path.frame_speeds[path.n_frames - 1] > 0) {
 				path.good_frames[path.n_good_frames] = n_frames;
 				path.n_good_frames++;
 			}
 
-			if (current_dist - path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames) > max_offset + 200 || path.frame_speeds[path.n_frames - 1] == 0) {
+			if (current_dist_squared > powf(max_offset + 200 + path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames), 2) || path.frame_speeds[path.n_frames - 1] == 0) {
 				break;
 			}
 		}

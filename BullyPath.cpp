@@ -9,6 +9,9 @@
 float BullyPath::calculate_current_dist() {
 	return euclidean_distance(start_pos, frame_positions[n_frames - 1]);
 }
+float BullyPath::calculate_current_dist_squared() {
+	return euclidean_distance_squared(start_pos, frame_positions[n_frames - 1]);
+}
 
 bool BullyPath::advance_frame() {
 	if (frame_states[n_frames - 1] == STATE_LAVA_DEATH) {
