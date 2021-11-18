@@ -281,9 +281,9 @@ void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float mi
 	}
 }
 
-void find_paths(Vec3f &start_position, float min_speed, float max_speed, int total_frames, float min_offset, float max_offset) {
+void find_paths(Vec3f &start_position, float min_speed, float max_speed, int total_frames, float min_offset, float max_offset, int min_angle_idx, int max_angle_idx) {
 	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i < 8192; ++i) {
+	for (int i = min_angle_idx; i <= max_angle_idx; ++i) {
 		std::cout << gArctanTable[i] << "\n";
 		find_angle_paths(start_position, gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
 	}
