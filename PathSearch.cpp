@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 void output_result(BullyPath &path, float lower_speed, float upper_speed, float min_offset, float max_offset) {
 	int frame = 0;
@@ -35,10 +36,49 @@ void output_result(BullyPath &path, float lower_speed, float upper_speed, float 
 	}
 }
 
+//ONLY VALID WHEN A IS LESS THAN 2^63
+float fmod_with_int(float a, int b) {
+	long int_a = a;
+	long count = int_a / b;
+	float mod_a = a - (count * b);
+	// if (a < 0) {
+	// 	while (mod_a <= -b) {
+	// 		mod_a += b;
+	// 	}
+	// } else {
+	// 	while (mod_a >= b) {
+	// 		mod_a -= b;
+	// 	}	
+	// }
+	// if (mod_a != fmodf(a, b)) {
+	// 	printf("something went wrong, got %f, expected %f, a = %f, b = %d\n", mod_a, fmodf(a, b), a, b);
+	// }
+	return mod_a;
+}
+bool verify_fmod_int() {
+	float check = std::numeric_limits<long>::min();
+	float max_float = std::numeric_limits<long>::max();
+	long count = 0;
+	while (check < max_float) {
+		if (count % 100000000 == 0) {
+			printf("count = %ld\n", count);
+		}
+		if (fmod_with_int(check, 65536) != fmodf(check, 65536.0)) {
+			printf("fmod_with_int failed check with a = %f\n", check);
+			return false;
+		}
+		check = std::nextafter(check, max_float);
+		count+=1;
+	}
+	return true;
+}
+
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
 	int frame_count = 0;
 
 	int max_i = fmax(a.n_frames, b.n_frames);
+
+	float max_offset_squared = max_offset * max_offset;
 
 	for (int i = 1; i < max_i; i++) {
 		if (i == a.n_frames) {
@@ -57,10 +97,10 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 			return false;
 		}
 
-		float a_dist = euclidean_distance(a.frame_positions[i], a.start_pos);
-		float b_dist = euclidean_distance(b.frame_positions[i], b.start_pos);
+		float a_dist_squared = euclidean_distance_squared(a.frame_positions[i], a.start_pos);
+		float b_dist_squared = euclidean_distance_squared(b.frame_positions[i], b.start_pos);
 
-		if ((a_dist <= max_offset) ^ (b_dist <= max_offset)) {
+		if ((a_dist_squared <= max_offset_squared) ^ (b_dist_squared <= max_offset_squared)) {
 			return false;
 		}
 
@@ -108,12 +148,23 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 				float min_x; float max_x; float min_y; float max_y; float min_z; float max_z;
 
 				if (a.intended_positions[i][0] < b.intended_positions[i][0]) {
-					min_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
-					max_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					// min_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					min_x = fmod_with_int(a.intended_positions[i][0] + 32768.0f, 65536) - 32768.0f;
+					// float test_min_x = fmod_with_int(a.intended_positions[i][0] + 32768.0f, 65536)- 32768.0f;
+					// if (min_x != test_min_x) {
+					// 	printf("something is wrong, got %f, expected %f, a = %f\n",test_min_x, min_x, a.intended_positions[i][0] + 32768.0f);
+					// }
+					// max_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					max_x = fmod_with_int(b.intended_positions[i][0] + 32768.0f, 65536)- 32768.0f;
+					// if (max_x != test_max_x) {
+					// 	printf("something is wrong, got %f, expected %f, a = %f\n", test_max_x, max_x, b.intended_positions[i][0] + 32768.0f);
+					// }
 				}
 				else {
-					min_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
-					max_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					// min_x = fmodf(b.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					min_x = fmod_with_int(b.intended_positions[i][0] + 32768.0f, 65536) - 32768.0f;
+					// max_x = fmodf(a.intended_positions[i][0] + 32768.0f, 65536.0f) - 32768.0f;
+					max_x = fmod_with_int(a.intended_positions[i][0] + 32768.0f, 65536) - 32768.0f;
 				}
 
 				if (a.intended_positions[i][1] < b.intended_positions[i][1]) {
@@ -126,12 +177,16 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 				}
 
 				if (a.intended_positions[i][2] < b.intended_positions[i][2]) {
-					min_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
-					max_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					// min_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					min_z = fmod_with_int(a.intended_positions[i][2] + 32768.0f, 65536) - 32768.0f;
+					// max_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					max_z = fmod_with_int(b.intended_positions[i][2] + 32768.0f, 65536) - 32768.0f;
 				}
 				else {
-					min_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
-					max_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					// min_z = fmodf(b.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					min_z = fmod_with_int(b.intended_positions[i][2] + 32768.0f, 65536) - 32768.0f;
+					// max_z = fmodf(a.intended_positions[i][2] + 32768.0f, 65536.0f) - 32768.0f;
+					max_z = fmod_with_int(a.intended_positions[i][2] + 32768.0f, 65536) - 32768.0f;
 				}
 
 				if (a_pu_x == 0 && a_pu_z == 0) {
@@ -167,16 +222,17 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 }
 
 bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_offset) {
+	float max_offset_squared = max_offset * max_offset;
 	for (int n_frames = current_frame; n_frames <= max_frames; ++n_frames) {
 		if (path.advance_frame()) {
-			float current_dist = path.calculate_current_dist();
+			float current_dist_squared = path.calculate_current_dist_squared();
 
-			if (current_dist <= max_offset && path.frame_states[path.n_frames - 1] != STATE_LAVA_DEATH && path.frame_speeds[path.n_frames - 1] > 0) {
+			if (current_dist_squared <= max_offset_squared && path.frame_states[path.n_frames - 1] != STATE_LAVA_DEATH && path.frame_speeds[path.n_frames - 1] > 0) {
 				path.good_frames[path.n_good_frames] = n_frames;
 				path.n_good_frames++;
 			}
 
-			if (current_dist - path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames) > max_offset + 200 || path.frame_speeds[path.n_frames - 1] == 0) {
+			if (current_dist_squared > powf(max_offset + 200 + path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames), 2) || path.frame_speeds[path.n_frames - 1] == 0) {
 				break;
 			}
 		}

@@ -18,6 +18,7 @@ typedef std::array<Vec3f, 3> VecVec3f;
 typedef std::array<std::array<float, 4>, 4> Mat4;
 
 float euclidean_distance(Vec3f &a, Vec3f &b);
+float euclidean_distance_squared(Vec3f &a, Vec3f &b);
 void create_transform_from_normal(Vec3f &normal, Vec3f &position, Mat4 &mat);
 void apply_tform(VecVec3f &vertices, Mat4 &mat, VecVec3f &tform_vertices);
 void vec3f_normalize(Vec3f &v);

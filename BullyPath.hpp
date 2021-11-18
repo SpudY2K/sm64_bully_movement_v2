@@ -49,5 +49,6 @@ public:
 
 	bool advance_frame();
 	float calculate_current_dist();
+	float calculate_current_dist_squared();
 };
 #endif
