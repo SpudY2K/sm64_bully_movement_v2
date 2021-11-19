@@ -48,7 +48,13 @@ This program accepts the following options:
 -h --help:                   Prints this text.
 </pre>
 
+The output file uses CSV format, where each row is a unique solution. The columns of the CSV file are as follows:
 
+<pre>
+number of frames, start angle, end angle, minimum speed, maximum speed, example speed, example end x, example end y, example end z, example displacement
+</pre>
+
+The "example" columns are taken from a bully path with an arbitrary speed within the valid speed range of the solution.
 
 # Building:
 
