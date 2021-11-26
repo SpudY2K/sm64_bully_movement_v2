@@ -39,7 +39,7 @@ void output_result(BullyPath &path, float lower_speed, float upper_speed, float 
 bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset) {
 	int frame_count = 0;
 
-	int max_i = fmax(a.n_frames, b.n_frames);
+	int max_i = std::max(a.n_frames, b.n_frames);
 
 	float max_offset_squared = max_offset * max_offset;
 
