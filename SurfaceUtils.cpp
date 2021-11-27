@@ -142,7 +142,7 @@ bool find_surface_in_region(Surface surfaces[], int n_surfaces, float min_x, flo
 	for (int h = 0; h < n_surfaces; ++h) {
 		bool inside_area = false;
 
-		if (max_z >= surfaces[h].min_z &max_y >= surfaces[h].lower_y & min_y <= surfaces[h].upper_y & max_x >= surfaces[h].min_x & min_x <= surfaces[h].max_x &  min_z <= surfaces[h].max_z) {
+		if (max_z >= surfaces[h].min_z & max_y >= surfaces[h].lower_y & min_y <= surfaces[h].upper_y & max_x >= surfaces[h].min_x & min_x <= surfaces[h].max_x &  min_z <= surfaces[h].max_z) {
 			double t_n; double t_d;
 
 			for (int i = 0; i < 3; ++i) {
