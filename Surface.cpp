@@ -1,5 +1,8 @@
 #include "Surface.hpp"
 #include <cmath>
+#include <algorithm>
+
+using std::min, std::max;
 
 void Surface::set_vertices(std::vector<std::vector<float>> &verts) {
 	for (int i = 0; i < 3; ++i) {
@@ -8,13 +11,13 @@ void Surface::set_vertices(std::vector<std::vector<float>> &verts) {
 		}
 	}
 
-	lower_y = fminf(fminf(vertices[0][1], vertices[1][1]), vertices[2][1]) - 5;
-	upper_y = fmaxf(fmaxf(vertices[0][1], vertices[1][1]), vertices[2][1]) + 5;
+	lower_y = min(min(vertices[0][1], vertices[1][1]), vertices[2][1]) - 5;
+	upper_y = max(max(vertices[0][1], vertices[1][1]), vertices[2][1]) + 5;
 
-	min_x = fminf(fminf(vertices[0][0], vertices[1][0]), vertices[2][0]);
-	max_x = fmaxf(fmaxf(vertices[0][0], vertices[1][0]), vertices[2][0]);
-	min_z = fminf(fminf(vertices[0][2], vertices[1][2]), vertices[2][2]);
-	max_z = fmaxf(fmaxf(vertices[0][2], vertices[1][2]), vertices[2][2]);
+	min_x = min(min(vertices[0][0], vertices[1][0]), vertices[2][0]);
+	max_x = max(max(vertices[0][0], vertices[1][0]), vertices[2][0]);
+	min_z = min(min(vertices[0][2], vertices[1][2]), vertices[2][2]);
+	max_z = max(max(vertices[0][2], vertices[1][2]), vertices[2][2]);
 
 	calculate_normal();
 }
@@ -26,13 +29,13 @@ void Surface::set_vertices(VecVec3f &verts) {
 		}
 	}
 
-	lower_y = fminf(fminf(vertices[0][1], vertices[1][1]), vertices[2][1]) - 5;
-	upper_y = fmaxf(fmaxf(vertices[0][1], vertices[1][1]), vertices[2][1]) + 5;
+	lower_y = min(min(vertices[0][1], vertices[1][1]), vertices[2][1]) - 5;
+	upper_y = max(max(vertices[0][1], vertices[1][1]), vertices[2][1]) + 5;
 
-	min_x = fminf(fminf(vertices[0][0], vertices[1][0]), vertices[2][0]);
-	max_x = fmaxf(fmaxf(vertices[0][0], vertices[1][0]), vertices[2][0]);
-	min_z = fminf(fminf(vertices[0][2], vertices[1][2]), vertices[2][2]);
-	max_z = fmaxf(fmaxf(vertices[0][2], vertices[1][2]), vertices[2][2]);
+	min_x = min(min(vertices[0][0], vertices[1][0]), vertices[2][0]);
+	max_x = max(max(vertices[0][0], vertices[1][0]), vertices[2][0]);
+	min_z = min(min(vertices[0][2], vertices[1][2]), vertices[2][2]);
+	max_z = max(max(vertices[0][2], vertices[1][2]), vertices[2][2]);
 
 	calculate_normal();
 }

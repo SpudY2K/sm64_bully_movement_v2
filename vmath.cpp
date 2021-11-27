@@ -3,10 +3,12 @@
 #include <cmath>
 
 float euclidean_distance(Vec3f &a, Vec3f &b) {
-	return sqrtf(powf(a[0] - b[0], 2.0f) + powf(a[2] - b[2], 2.0f));
+  float dx = a[0] - b[0], dz = a[2] - b[2];
+	return sqrtf(dx * dx + dz * dz);
 }
 float euclidean_distance_squared(Vec3f &a, Vec3f &b) {
-	return powf(a[0] - b[0], 2.0f) + powf(a[2] - b[2], 2.0f);
+  float dx = a[0] - b[0], dz = a[2] - b[2];
+	return dx * dx + dz * dz;
 }
 
 void create_transform_from_normal(Vec3f &normal, Vec3f &position, Mat4 &mat) {
