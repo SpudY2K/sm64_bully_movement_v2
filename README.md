@@ -20,6 +20,9 @@ This program accepts the following options:
 -p &lt;x&gt; &lt;y&gt; &lt;z&gt;:              Starting position of the bully.
                              Default: -1700 -2950 -350
 
+-y &lt;spd&gt;:                    Starting y speed of the bully.
+                             Default: 0
+
 -q &lt;x&gt; &lt;y&gt; &lt;z&gt;:              Position of the track platform.
                              Note: the platform does not move from this position in this simulation.
                              Default: -1594 -3072 0
