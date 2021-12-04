@@ -199,6 +199,7 @@ bool compare_paths(BullyPath &a, BullyPath &b, int max_frames, float max_offset)
 
 bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_offset) {
 	float max_offset_squared = max_offset * max_offset;
+
 	for (int n_frames = current_frame; n_frames <= max_frames; ++n_frames) {
 		if (path.advance_frame()) {
 			float current_dist_squared = path.calculate_current_dist_squared();
@@ -208,7 +209,7 @@ bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_of
 				path.n_good_frames++;
 			}
 
-			if (current_dist_squared > powf(max_offset + 200 + path.frame_speeds[path.n_frames - 1]*(max_frames - n_frames), 2) || path.frame_speeds[path.n_frames - 1] == 0) {
+			if (current_dist_squared > powf(max_offset + 200 + path.frame_speeds[path.n_frames - 1] * (max_frames - n_frames), 2) || path.frame_speeds[path.n_frames - 1] == 0) {
 				break;
 			}
 		}
@@ -220,7 +221,7 @@ bool trace_path(BullyPath &path, int current_frame, int max_frames, float max_of
 	return true;
 }
 
-void search_paths(Vec3f &start_position, int max_frames, float min_offset, float max_offset, BullyPath &min_path, BullyPath &max_path, float &lower_speed_max, float &upper_speed_min) {
+void search_paths(Vec3f &start_position, int max_frames, float min_offset, float max_offset, BullyPath &min_path, BullyPath &max_path, float &lower_speed_max, float &upper_speed_min, float start_y_speed) {
 	if (!compare_paths(min_path, max_path, max_frames, max_offset)) {
 		float min_speed = min_path.start_speed;
 		float max_speed = max_path.start_speed;
@@ -229,14 +230,14 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 		float mid_speed = (float)(((double)min_speed + (double)max_speed) / 2.0);
 
 		if (mid_speed != min_speed && mid_speed != max_speed) {
-			BullyPath mid_path(start_position, angle, mid_speed);
+			BullyPath mid_path(start_position, angle, mid_speed, start_y_speed);
 			trace_path(mid_path, 1, max_frames, max_offset);
 
 			float upper_lower_speed_max = NAN;
 			float upper_upper_speed_min = NAN;
 
-			search_paths(start_position, max_frames, min_offset, max_offset, min_path, mid_path, lower_speed_max, upper_speed_min);
-			search_paths(start_position, max_frames, min_offset, max_offset, mid_path, max_path, upper_lower_speed_max, upper_upper_speed_min);
+			search_paths(start_position, max_frames, min_offset, max_offset, min_path, mid_path, lower_speed_max, upper_speed_min, start_y_speed);
+			search_paths(start_position, max_frames, min_offset, max_offset, mid_path, max_path, upper_lower_speed_max, upper_upper_speed_min, start_y_speed);
 
 			if (upper_upper_speed_min != mid_speed) {
 				if (lower_speed_max != mid_speed) {
@@ -292,17 +293,17 @@ void search_paths(Vec3f &start_position, int max_frames, float min_offset, float
 	}
 }
 
-void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float min_offset, float max_offset, float min_speed, float max_speed) {
-	BullyPath min_path(start_position, angle, min_speed);
+void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float min_offset, float max_offset, float min_speed, float max_speed, float start_y_speed) {
+	BullyPath min_path(start_position, angle, min_speed, start_y_speed);
 	trace_path(min_path, 1, max_frames, max_offset);
 
-	BullyPath max_path(start_position, angle, max_speed);
+	BullyPath max_path(start_position, angle, max_speed, start_y_speed);
 	trace_path(max_path, 1, max_frames, max_offset);
 
 	float lower_speed_max = NAN;
 	float upper_speed_min = NAN;
 
-	search_paths(start_position, max_frames, min_offset, max_offset, min_path, max_path, lower_speed_max, upper_speed_min);
+	search_paths(start_position, max_frames, min_offset, max_offset, min_path, max_path, lower_speed_max, upper_speed_min, start_y_speed);
 
 	if (!std::isnan(lower_speed_max)) {
 		output_result(min_path, min_speed, lower_speed_max, min_offset, max_offset);
@@ -313,10 +314,10 @@ void find_angle_paths(Vec3f &start_position, int angle, int max_frames, float mi
 	}
 }
 
-void find_paths(Vec3f &start_position, float min_speed, float max_speed, int total_frames, float min_offset, float max_offset, int min_angle_idx, int max_angle_idx) {
+void find_paths(Vec3f &start_position, float min_speed, float max_speed, int total_frames, float min_offset, float max_offset, int min_angle_idx, int max_angle_idx, float start_y_speed) {
 	#pragma omp parallel for schedule(dynamic, 1)
 	for (int i = min_angle_idx; i <= max_angle_idx; ++i) {
 		std::cout << gArctanTable[i] << "\n";
-		find_angle_paths(start_position, gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed);
+		find_angle_paths(start_position, gArctanTable[i], total_frames, min_offset, max_offset, min_speed, max_speed, start_y_speed);
 	}
 }

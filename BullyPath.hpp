@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vmath.hpp"
-#include <vector>
 
 #ifndef BULLY_PATH_H
 #define BULLY_PATH_H
@@ -31,7 +30,7 @@ public:
 	float start_speed;
 	int start_yaw;
 
-	float current_y_speed = 0.0f;
+	float current_y_speed;
 
 	BullyPath() {}
 
@@ -39,6 +38,20 @@ public:
 		start_pos = pos;
 		start_yaw = yaw;
 		start_speed = speed;
+		current_y_speed = 0.0f;
+
+		frame_positions[0] = pos;
+		intended_positions[0] = pos;
+		frame_yaws[0] = yaw;
+		frame_speeds[0] = speed;
+		frame_states[0] = STATE_CLEAR;
+	}
+
+	BullyPath(Vec3f pos, int yaw, float speed, float y_speed) {
+		start_pos = pos;
+		start_yaw = yaw;
+		start_speed = speed;
+		current_y_speed = y_speed;
 
 		frame_positions[0] = pos;
 		intended_positions[0] = pos;
